@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 
 import {
-  StyleSheet,
   Text,
   View,
   Image,
@@ -11,58 +10,27 @@ import {
 
 import SwipeCards from 'react-native-swipe-cards';
 
-class Card extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { media: [] };
-  }
-
-  render() {
-    console.log(this.props.uri);
-
-    if (!this.props.uri) {
-      return <Text>Oops</Text>
-    }
-
-    return (
-      <View style={{
-        alignItems: 'center',
-        // borderRadius: 5,
-        overflow: 'hidden',
-        // borderColor: 'grey',
-        // backgroundColor: 'white',
-        // borderWidth: 1,
-        elevation: 1,
-      }}>
-        <Image
-          resizeMode="contain"
-          source={{uri: this.props.uri}}
-          style={{
-            alignSelf: 'stretch',
-            flex: 1,
-            width: 300,
-            height: undefined
-          }} />
-      </View>
-    )
-  }
+function getMorePhotos(page) {
+  return new Promise((resolve, reject) => {
+    CameraRoll.getPhotos({
+      first: 30,
+      after: page ? page : undefined,
+      assetType: 'All'
+    }).then(r => {
+      resolve({
+        media: r.edges
+          .map((e, index) => e.node.image && e.node.image.uri)
+          .filter(Boolean)
+          .map(uri => ({
+            uri: uri
+          })),
+        pagination: r.page_info
+      });
+    }).catch(e => reject(e))
+  });
 }
 
-class NoMoreCards extends Component {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    return (
-      <View>
-        <Text>No more cards</Text>
-      </View>
-    )
-  }
-}
-
-export default class App extends React.Component {
+export default class App extends Component {
   constructor(props) {
     super(props);
 
@@ -72,62 +40,99 @@ export default class App extends React.Component {
   }
 
   componentWillMount() {
-    CameraRoll.getPhotos({
-      first: 30,
-      assetType: 'All'
-    }).then(r => {
-      this.setState({
-        media: r.edges
-          .map(e => e.node.image && e.node.image.uri)
-          .filter(Boolean)
-          .map(uri => ({
-            uri: uri
-          }))
-      });
-    })
+    getMorePhotos().then(p => this.setState(p));
   }
 
-  handleYup(card) {
-    console.log(`Yup for ${card.text}`)
+  handleYup (card) {
+    card.uri = '';
   }
 
-  handleNope(card) {
-    console.log(`Nope for ${card.text}`)
-  }
-
-  handleMaybe(card) {
-    console.log(`Maybe for ${card.text}`)
+  handleNope (card) {
+    card.uri = '';
   }
 
   render() {
+    if (this.state.media.length === 0) {
+      return <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'black'
+      }}><Text style={{
+        color: 'white',
+        fontSize: 24
+      }}>Loading...</Text>
+      </View>
+    }
 
-    console.log(this.state.media);
-
-    // If you want a stack of cards instead of one-per-one view, activate stack mode
-    // stack={true}
     return (
       <View style={{
         flex: 1,
-        flexDirection: 'column',
+        justifyContent: 'center',
+        backgroundColor: 'black'
       }}>
         <SwipeCards
-          style={{ flex: 1 }}
+          style={{
+            flex: 1,
+          }}
+          yupStyle={{
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            marginLeft: -64,
+            borderRadius: null,
+            borderWidth: null,
+            borderColor: null
+          }}
+          yupTextStyle={{
+            fontSize: 128
+          }}
+          yupText='✅'
+          nopeStyle={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            // marginRight: 64,
+            borderRadius: null,
+            borderWidth: null,
+            borderColor: null
+          }}
+          nopeTextStyle={{
+            fontSize: 128
+          }}
+          nopeText='🗑️'
+          onClickHandler={()=>{}}
           cards={this.state.media}
-          renderCard={(cardData) => <Card {...cardData} />}
-          renderNoMoreCards={() => <NoMoreCards />}
+          renderCard={(d) => (
+            <View style={{
+              width: 380,
+              height: null,
+              flex: 1
+            }}>
+              <Image
+                resizeMode="contain"
+                source={{ uri: d.uri }}
+                style={{
+                  width: null,
+                  height: null,
+                  flex: 1
+                }} />
+            </View>
+          )}
+          cardRemoved={(index) => {
+            console.log(index, this.state.media.length)
+            if (this.state.media.length - index <= 10) {
+              getMorePhotos(this.state.pagination.end_cursor).then(r => {
+                this.setState({ 
+                  media: this.state.media.concat(r.media),
+                  pagination: r.pagination
+                });
 
-          handleYup={this.handleYup}
-          handleNope={this.handleNope}
-          handleMaybe={this.handleMaybe}
-          hasMaybeAction
+                console.log(this.state)
+              });
+            }
+          }}
         />
-        <View style={{
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: 48
-        }}>
-          <Text>Bottom Thing</Text>
-        </View>
       </View>
     )
   }
