@@ -1297,6 +1297,10 @@ ci-info@^1.0.0:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-1.1.2.tgz#03561259db48d0474c8bdc90f5b47b068b6bbfb4"
 
+clamp@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/clamp/-/clamp-1.0.1.tgz#66a0e64011816e37196828fdc8c8c147312c8634"
+
 cli-cursor@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/cli-cursor/-/cli-cursor-2.1.0.tgz#b35dac376479facc3e94747d41d0d0f5238ffcb5"
@@ -4584,6 +4588,13 @@ react-native-scripts@1.8.1:
   dependencies:
     color "^2.0.1"
     lodash "^4.16.6"
+
+react-native-swipe-cards@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/react-native-swipe-cards/-/react-native-swipe-cards-0.1.1.tgz#25a31b450f2616f3a25a101c9fc37ccbb2deb3e2"
+  dependencies:
+    clamp "^1.0.1"
+    prop-types "^15.6.0"
 
 react-native-vector-icons@4.4.2:
   version "4.4.2"
